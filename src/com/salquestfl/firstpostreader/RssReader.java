@@ -1,9 +1,14 @@
-package com.salquestfl.bbcreader;
+package com.salquestfl.firstpostreader;
 
 import java.io.IOException;
 import java.io.Reader;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import android.text.Html;
+import android.text.Spannable;
+import android.text.style.ImageSpan;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -22,7 +27,7 @@ import android.util.Log;
 
 public class RssReader extends DefaultHandler {
 	
-    private static final String TAG = "BBCReader";
+    private static final String TAG = "FirstpostReader";
 
     private ArrayList<HashMap<String, String>> rssItems = new ArrayList<HashMap<String, String>>();
     private HashMap<String, String> rssItem = new HashMap<String, String>();
@@ -48,10 +53,6 @@ public class RssReader extends DefaultHandler {
     public void startElement(String uri, String localName, String qName, Attributes attributes) {
         // reset the string buffer
         chars = new StringBuilder();
-        // A hack to include the media thumbnail URL
-        if (qName.equals("media:thumbnail")) {
-            rssItem.put("thumbnail", attributes.getValue("url"));
-        }
     }
 
     @Override
@@ -70,7 +71,33 @@ public class RssReader extends DefaultHandler {
                 rssItem = new HashMap<String, String>();
             }
             else {
-                rssItem.put(field, chars.toString());
+                if (field.equals("link") || field.equals("title") || field.equals("description")) {
+		  // these elements are CDATA (![CDATA[  ... ]])
+		  String field_val;
+		  if (chars.substring(0, 8).equals("![CDATA[")) {
+		    int len = chars.length();
+		    field_val = chars.substring(8, len-2);
+		  } else {
+		    field_val = chars.toString();
+		  }
+		  String desc_str;
+		  if (field.equals("description")) {
+		    // Hack to get the image span embedded in the description as a thumbnail
+		    Spannable desc = (Spannable)Html.fromHtml(field_val);
+		    ImageSpan[] imageSpans = desc.getSpans(0, desc.length(), ImageSpan.class);
+		    if (imageSpans.length == 1) {
+		      rssItem.put("thumbnail", imageSpans[0].getSource());
+		      int start = desc.getSpanEnd(imageSpans[0]);
+		      desc_str = desc.subSequence(start, desc.length()).toString();
+		    } else {
+		      desc_str = desc.toString();
+		    }
+		  } else {
+		    desc_str = field_val;
+		  }
+		  String text = Html.fromHtml(desc_str).toString();
+		  rssItem.put(field, text);
+                }
             }
         }
                     

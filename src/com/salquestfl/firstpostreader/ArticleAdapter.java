@@ -1,4 +1,4 @@
-package com.salquestfl.bbcreader;
+package com.salquestfl.firstpostreader;
 
 import java.lang.ref.WeakReference;
 import java.util.List;

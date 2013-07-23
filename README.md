@@ -1,4 +1,4 @@
-BBCReader
+FirstpostReader
 =========
 
-Android app for BBC news
+Android app for Firstpost news
