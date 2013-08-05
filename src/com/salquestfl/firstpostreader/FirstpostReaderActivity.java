@@ -56,7 +56,7 @@ class RssReaderTask extends AsyncTask<String, Void, ArrayList<HashMap<String, St
             conn = (HttpURLConnection) url.openConnection();
 	    conn.setRequestProperty("User-Agent", "Desktop");
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-            return RssReader.read(in);
+            return new RssReader().read(in);
         } catch (Exception e) {
             Log.w(TAG, e.toString());
             return null;
